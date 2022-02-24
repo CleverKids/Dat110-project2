@@ -1,20 +1,16 @@
 package no.hvl.dat110.messages;
 
-import no.hvl.dat110.common.TODO;
-
 import static no.hvl.dat110.messages.MessageType.PUBLISH;
 
 public class PublishMsg extends Message {
 	
 	// message sent from client to create publish a message on a topic 
 
-	// TODO:
-	// Implement object variables - a topic and a message is required
 	private String topic;
 	private String message;
 	
 	
-	public PublishMsg(String topic, String message, String user) {
+	public PublishMsg(String user, String topic, String message) {
 		super(PUBLISH, user);
 		this.topic = topic;
 		this.message = message;

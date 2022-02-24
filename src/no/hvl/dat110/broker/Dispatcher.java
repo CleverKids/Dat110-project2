@@ -1,9 +1,7 @@
 package no.hvl.dat110.broker;
 
-import java.util.Set;
 import java.util.Collection;
 
-import no.hvl.dat110.common.TODO;
 import no.hvl.dat110.common.Logger;
 import no.hvl.dat110.common.Stopable;
 import no.hvl.dat110.messages.*;
@@ -155,7 +153,8 @@ public class Dispatcher extends Stopable {
 		// TODO: publish the message to clients subscribed to the topic
 		// topic and message is contained in the subscribe message
 		// messages must be sent using the corresponding client session objects
-		/*
+		
+		
 		Collection<ClientSession> sessions = storage.getSessions();
 		
 		for (ClientSession client : sessions) {
@@ -163,8 +162,6 @@ public class Dispatcher extends Stopable {
 				client.send(msg);
 			}
 		}
-		*/
-		storage.getSubscribers(msg.getTopic()).forEach(sub -> storage.getSession(sub).send(msg));
-
+	
 	}
 }
