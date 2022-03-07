@@ -10,7 +10,6 @@ public class ClientSession {
 
 	// underlying message transport connection
 	private Connection connection;
-//	private Dispatcher dispatcher;
 
 	public ClientSession(String user, Connection connection) {
 		this.user = user;
@@ -23,7 +22,6 @@ public class ClientSession {
 		if (connection != null) {
 			connection.close();
 		}
-	//	dispatcher.doStop();
 	}
 
 	public String getUser() {
