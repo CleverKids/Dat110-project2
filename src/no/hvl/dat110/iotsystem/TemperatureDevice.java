@@ -1,5 +1,8 @@
 package no.hvl.dat110.iotsystem;
 
+import static no.hvl.dat110.iotsystem.Common.BROKERHOST;
+import static no.hvl.dat110.iotsystem.Common.BROKERPORT;
+
 import no.hvl.dat110.client.Client;
 import no.hvl.dat110.common.TODO;
 
@@ -35,7 +38,6 @@ public class TemperatureDevice {
 		// TODO - end
 
 		System.out.println("Temperature device stopping ... ");
-
 
 	}
 }
