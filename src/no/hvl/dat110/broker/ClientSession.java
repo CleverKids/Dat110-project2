@@ -7,9 +7,10 @@ import no.hvl.dat110.messagetransport.Connection;
 public class ClientSession {
 
 	private String user;
-	
+
 	// underlying message transport connection
 	private Connection connection;
+//	private Dispatcher dispatcher;
 
 	public ClientSession(String user, Connection connection) {
 		this.user = user;
@@ -22,6 +23,7 @@ public class ClientSession {
 		if (connection != null) {
 			connection.close();
 		}
+	//	dispatcher.doStop();
 	}
 
 	public String getUser() {
@@ -31,7 +33,7 @@ public class ClientSession {
 	public void setUser(String user) {
 		this.user = user;
 	}
-	
+
 	public void send(Message message) {
 
 		MessageUtils.send(connection, message);

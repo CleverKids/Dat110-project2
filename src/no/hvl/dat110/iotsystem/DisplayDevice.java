@@ -5,6 +5,8 @@ import no.hvl.dat110.messages.Message;
 import no.hvl.dat110.messages.PublishMsg;
 import no.hvl.dat110.common.TODO;
 
+import static no.hvl.dat110.iotsystem.Common.*;
+
 public class DisplayDevice {
 	
 	private static final int COUNT = 10;
@@ -12,6 +14,17 @@ public class DisplayDevice {
 	public static void main (String[] args) {
 		
 		System.out.println("Display starting ...");
+
+		Client client = new Client("Disply device", BROKERHOST, BROKERPORT);
+		client.connect();
+		client.createTopic(TEMPTOPIC);
+		client.subscribe(TEMPTOPIC);
+		for (int i =0; i<COUNT; i++) {
+			PublishMsg msg = (PublishMsg) client.receive();
+			System.out.println(msg.toString());
+		}
+		client.unsubscribe(TEMPTOPIC);
+		client.disconnect();
 		
 		// TODO - START
 				
@@ -27,8 +40,6 @@ public class DisplayDevice {
 		// TODO - END
 		
 		System.out.println("Display stopping ... ");
-		
-		throw new UnsupportedOperationException(TODO.method());
-		
+
 	}
 }

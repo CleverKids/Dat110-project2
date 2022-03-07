@@ -10,7 +10,7 @@ public class CreateTopicMsg extends Message {
 	// Implement object variables - a topic is required
 	private String topic;
 
-	public CreateTopicMsg(String topic, String user) {
+	public CreateTopicMsg( String user,String topic) {
 		super(CREATETOPIC, user);
 		this.topic = topic;
 	}

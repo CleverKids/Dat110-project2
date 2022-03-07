@@ -9,18 +9,26 @@ import no.hvl.dat110.messages.MessageUtils;
 import no.hvl.dat110.messagetransport.Connection;
 import no.hvl.dat110.messagetransport.MessagingServer;
 
-public class Broker extends Stopable { 
+public class Broker extends Stopable {
 
 	private boolean stopable = false;
 	private int maxaccept = 0;
 	
 	private MessagingServer server;
-	private Dispatcher dispatcher;
-		
+//	private Dispatcher dispatcher;
+	private Storage storage;
+/*
 	public Broker (Dispatcher dispatcher,int port) {
 		super("Broker");
 		server = new MessagingServer(port);
 		this.dispatcher = dispatcher;
+		Broker broker;
+	}
+*/
+	public Broker (int port) {
+		super("Broker");
+		server = new MessagingServer(port);
+		storage= new Storage();
 	}
 	
 	public void setMaxAccept(int n) {
@@ -58,7 +66,9 @@ public class Broker extends Stopable {
 		if (msg.getType() == MessageType.CONNECT) {
 			
 			ConnectMsg cmsg = (ConnectMsg) msg;
-			dispatcher.onConnect(cmsg, connection);
+			Dispatcher dispatcher = new Dispatcher(cmsg, connection,storage);
+			dispatcher.start();
+		//	dispatcher.onConnect(cmsg, connection);
 			
 		} else {
 			System.out.println("Protocol error: first message should be connect");

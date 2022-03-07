@@ -1,5 +1,7 @@
 package no.hvl.dat110.messagetransport;
 
+import no.hvl.dat110.messages.Message;
+
 import java.util.Arrays;
 
 public class TransportMessage {

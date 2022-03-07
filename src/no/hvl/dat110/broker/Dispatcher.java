@@ -1,5 +1,6 @@
 package no.hvl.dat110.broker;
 
+import java.util.List;
 import java.util.Set;
 import java.util.Collection;
 
@@ -11,17 +12,20 @@ import no.hvl.dat110.messagetransport.Connection;
 
 public class Dispatcher extends Stopable {
 
-	private Storage storage;
+    private Storage storage;
+    private ClientSession client;
 
-	public Dispatcher(Storage storage) {
-		super("Dispatcher");
-		this.storage = storage;
+    public Dispatcher(ConnectMsg msg, Connection connection, Storage storage) {
+        super("Dispatcher");
+        this.storage = storage;
+        this.client = new ClientSession(msg.getUser(),connection);
+        onConnect(msg,connection);
 
-	}
+    }
 
-	@Override
-	public void doProcess() {
-
+    @Override
+    public void doProcess() {
+/*
 		Collection<ClientSession> clients = storage.getSessions();
 
 		Logger.lg(".");
@@ -44,117 +48,143 @@ public class Dispatcher extends Stopable {
 		} catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-	}
+		*/
+        Message msg = null;
 
-	public void dispatch(ClientSession client, Message msg) {
+        if (client.hasData()) {
+            msg = client.receive();
+        }
 
-		MessageType type = msg.getType();
+        // a message was received
+        if (msg != null) {
+            dispatch(client, msg);
 
-		// invoke the appropriate handler method
-		switch (type) {
+        }
 
-		case DISCONNECT:
-			onDisconnect((DisconnectMsg) msg);
-			break;
+        try {
+            Thread.sleep(1000);
+        } catch (
+                InterruptedException e) {
+            e.printStackTrace();
+        }
 
-		case CREATETOPIC:
-			onCreateTopic((CreateTopicMsg) msg);
-			break;
+    }
 
-		case DELETETOPIC:
-			onDeleteTopic((DeleteTopicMsg) msg);
-			break;
+    public void dispatch(ClientSession client, Message msg) {
 
-		case SUBSCRIBE:
-			onSubscribe((SubscribeMsg) msg);
-			break;
+        MessageType type = msg.getType();
 
-		case UNSUBSCRIBE:
-			onUnsubscribe((UnsubscribeMsg) msg);
-			break;
+        // invoke the appropriate handler method
+        switch (type) {
 
-		case PUBLISH:
-			onPublish((PublishMsg) msg);
-			break;
+            case DISCONNECT:
+                onDisconnect((DisconnectMsg) msg);
+                break;
 
-		default:
-			Logger.log("broker dispatch - unhandled message type");
-			break;
+            case CREATETOPIC:
+                onCreateTopic((CreateTopicMsg) msg);
+                break;
 
-		}
-	}
+            case DELETETOPIC:
+                onDeleteTopic((DeleteTopicMsg) msg);
+                break;
 
-	// called from Broker after having established the underlying connection
-	public void onConnect(ConnectMsg msg, Connection connection) {
+            case SUBSCRIBE:
+                onSubscribe((SubscribeMsg) msg);
+                break;
 
-		String user = msg.getUser();
+            case UNSUBSCRIBE:
+                onUnsubscribe((UnsubscribeMsg) msg);
+                break;
 
-		Logger.log("onConnect:" + msg.toString());
+            case PUBLISH:
+                onPublish((PublishMsg) msg);
+                break;
 
-		storage.addClientSession(user, connection);
+            default:
+                Logger.log("broker dispatch - unhandled message type");
+                break;
 
-	}
+        }
+    }
 
-	// called by dispatch upon receiving a disconnect message
-	public void onDisconnect(DisconnectMsg msg) {
+    // called from Broker after having established the underlying connection
+    public void onConnect(ConnectMsg msg, Connection connection) {
 
-		String user = msg.getUser();
+        String user = msg.getUser();
 
-		Logger.log("onDisconnect:" + msg.toString());
+        Logger.log("onConnect:" + msg.toString());
 
-		storage.removeClientSession(user);
+        storage.addClientSession(user, client);
+        List<Message> userBuffer = storage.getMessageBuffer(user);
+        if(userBuffer != null){
+            userBuffer.forEach(uMsg -> storage.getSession(user).send(uMsg));
+        }
 
-	}
 
-	public void onCreateTopic(CreateTopicMsg msg) {
+    }
 
-		Logger.log("onCreateTopic:" + msg.toString());
+    // called by dispatch upon receiving a disconnect message
+    public void onDisconnect(DisconnectMsg msg) {
 
-		// TODO: create the topic in the broker storage
-		// the topic is contained in the create topic message
+        String user = msg.getUser();
 
-		storage.createTopic(msg.getTopic());
+        Logger.log("onDisconnect:" + msg.toString());
 
-	}
+        storage.removeClientSession(user);
+        super.doStop();
 
-	public void onDeleteTopic(DeleteTopicMsg msg) {
+    }
 
-		Logger.log("onDeleteTopic:" + msg.toString());
+    public void onCreateTopic(CreateTopicMsg msg) {
 
-		// TODO: delete the topic from the broker storage
-		// the topic is contained in the delete topic message
-		
-		storage.deleteTopic(msg.getTopic());
-	}
+        Logger.log("onCreateTopic:" + msg.toString());
 
-	public void onSubscribe(SubscribeMsg msg) {
+        // TODO: create the topic in the broker storage
+        // the topic is contained in the create topic message
 
-		Logger.log("onSubscribe:" + msg.toString());
+        storage.createTopic(msg.getTopic());
 
-		// TODO: subscribe user to the topic
-		// user and topic is contained in the subscribe message
-		
-		storage.addSubscriber(msg.getUser(), msg.getTopic());
+    }
 
-	}
+    public void onDeleteTopic(DeleteTopicMsg msg) {
 
-	public void onUnsubscribe(UnsubscribeMsg msg) {
+        Logger.log("onDeleteTopic:" + msg.toString());
 
-		Logger.log("onUnsubscribe:" + msg.toString());
+        // TODO: delete the topic from the broker storage
+        // the topic is contained in the delete topic message
 
-		// TODO: unsubscribe user to the topic
-		// user and topic is contained in the unsubscribe message
-		
-		storage.removeSubscriber(msg.getUser(), msg.getTopic());
-	}
+        storage.deleteTopic(msg.getTopic());
+    }
 
-	public void onPublish(PublishMsg msg) {
+    public void onSubscribe(SubscribeMsg msg) {
 
-		Logger.log("onPublish:" + msg.toString());
+        Logger.log("onSubscribe:" + msg.toString());
 
-		// TODO: publish the message to clients subscribed to the topic
-		// topic and message is contained in the subscribe message
-		// messages must be sent using the corresponding client session objects
+        // TODO: subscribe user to the topic
+        // user and topic is contained in the subscribe message
+
+        storage.addSubscriber(msg.getUser(), msg.getTopic());
+
+    }
+
+    public void onUnsubscribe(UnsubscribeMsg msg) {
+
+        Logger.log("onUnsubscribe:" + msg.toString());
+
+        // TODO: unsubscribe user to the topic
+        // user and topic is contained in the unsubscribe message
+
+        storage.removeSubscriber(msg.getUser(), msg.getTopic());
+    }
+
+    public void onPublish(PublishMsg msg) {
+
+        Logger.log("onPublish:" + msg.toString());
+
+        // TODO: publish the message to clients subscribed to the topic
+        // topic and message is contained in the subscribe message
+        // messages must be sent using the corresponding client session objects
 		/*
 		Collection<ClientSession> sessions = storage.getSessions();
 		
@@ -164,7 +194,18 @@ public class Dispatcher extends Stopable {
 			}
 		}
 		*/
-		storage.getSubscribers(msg.getTopic()).forEach(sub -> storage.getSession(sub).send(msg));
 
-	}
+        //	storage.getSubscribers(msg.getTopic()).forEach(sub -> storage.getSession(sub).send(msg));
+        //	storage.getSubscribers(msg.getTopic()).forEach(sub -> storage.addMessageToBuffer(sub,msg));
+
+        for (String sub : storage.getSubscribers(msg.getTopic())) {
+            if (storage.isOnline(sub)) {
+                storage.getSession(sub).send(msg);
+            } else {
+                storage.addMessageToBuffer(sub, msg);
+            }
+        }
+
+    }
+
 }
