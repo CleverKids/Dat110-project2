@@ -1,9 +1,12 @@
 package no.hvl.dat110.broker;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import no.hvl.dat110.messages.Message;
 import no.hvl.dat110.messagetransport.Connection;
 
 public class Storage {
@@ -17,9 +20,12 @@ public class Storage {
 	
 	protected ConcurrentHashMap<String, ClientSession> clients;
 
+	protected ConcurrentHashMap<String, List<Message>> messageBuffer;
+
 	public Storage() {
 		subscriptions = new ConcurrentHashMap<String, Set<String>>();
 		clients = new ConcurrentHashMap<String, ClientSession>();
+		messageBuffer = new ConcurrentHashMap<String, List<Message>>();
 	}
 
 	public Collection<ClientSession> getSessions() {
@@ -48,23 +54,24 @@ public class Storage {
 
 	}
 
-	public void addClientSession(String user, Connection connection) {
+	public void addClientSession(String user, ClientSession client) {
 		
-		clients.put(user, new ClientSession(user, connection));
+		clients.put(user, client);
 		
 	}
 
 	public void removeClientSession(String user) {
-
+		messageBuffer.put(user,new ArrayList<>());
 		clients.get(user).disconnect();
 		clients.remove(user);
+
 		
 	}
 
 	public void createTopic(String topic) {
 
 
-		subscriptions.put(topic, ConcurrentHashMap.newKeySet());	//new HashSet<>()
+		subscriptions.put(topic, ConcurrentHashMap.newKeySet());
 		
 	}
 
@@ -84,4 +91,18 @@ public class Storage {
 
 		subscriptions.get(topic).remove(user);
 	}
+
+	public void addMessageToBuffer(String user, Message msg){
+		messageBuffer.get(user).add(msg);
+	}
+
+	public List<Message> getMessageBuffer(String user){
+		List<Message> userBuffer = messageBuffer.get(user);
+		messageBuffer.remove(user);
+		return userBuffer;
+	}
+	public boolean isOnline(String user){
+		return clients.containsKey(user);
+	}
+
 }

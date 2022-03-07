@@ -10,7 +10,9 @@ public class SubscribeMsg extends Message {
 	// Implement object variables - a topic is required
 	private String topic;
 
+
 	public SubscribeMsg(String user, String topic) {
+
 		super(SUBSCRIBE, user);
 		this.topic = topic;
 	}

@@ -6,6 +6,9 @@ import static no.hvl.dat110.iotsystem.Common.BROKERPORT;
 import no.hvl.dat110.client.Client;
 import no.hvl.dat110.common.TODO;
 
+import static no.hvl.dat110.iotsystem.Common.BROKERHOST;
+import static no.hvl.dat110.iotsystem.Common.BROKERPORT;
+
 public class TemperatureDevice {
 
 	private static final int COUNT = 10;
@@ -16,7 +19,6 @@ public class TemperatureDevice {
 		TemperatureSensor sn = new TemperatureSensor();
 
 		// TODO - start
-
 		// create a client object and use it to
 		Client client = new Client("Tempratur device", BROKERHOST, BROKERPORT);
 		// - connect to the broker - user "sensor" as the user name
